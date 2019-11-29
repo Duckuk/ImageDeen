@@ -10,7 +10,7 @@
 using namespace cimg_library;
 using namespace std;
 
-void encodeImagev2(CImg<unsigned char> image, CImgDisplay &main_disp) {
+void encodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
 
 	char hexString[7];
 	unsigned int r, g, b;
@@ -60,7 +60,7 @@ void encodeImagev2(CImg<unsigned char> image, CImgDisplay &main_disp) {
 	cout << "Wrote to 'output_e.png'" << endl;
 }
 
-void decodeImagev2(CImg<unsigned char> image, CImgDisplay &main_disp) {
+void decodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
 
 	char redHex[3];
 	char greenHex[3];
@@ -121,7 +121,7 @@ void decodeImagev2(CImg<unsigned char> image, CImgDisplay &main_disp) {
 	cout << "Wrote to 'output_d.png'" << endl;
 }
 
-void encodeImage(CImg<unsigned char> image) {
+void encodeImageLegacy(CImg<unsigned char> image) {
 
 	char hexString[7];
 	unsigned int r, g, b;
@@ -150,7 +150,7 @@ void encodeImage(CImg<unsigned char> image) {
 	cout << "Wrote to 'output_e.png'" << std::endl;
 }
 
-void decodeImage(CImg<unsigned char> image) {
+void decodeImageLegacy(CImg<unsigned char> image) {
 
 	char redHex[3];
 	char greenHex[3];
@@ -229,17 +229,17 @@ int main(int argc, char *argv[]) {
 		case 'e':
 			image.channels(0, 3);
 			if (flag) image.get_shared_channel(3).fill(255);
-			encodeImagev2(image, main_disp);
+			encodeImage(image, main_disp);
 			break;
 		case 'd':
 			image.channels(0, 3);
-			decodeImagev2(image, main_disp);
+			decodeImage(image, main_disp);
 			break;
 		case 'n':
-			encodeImage(image);
+			encodeImageLegacy(image);
 			break;
 		case 'c':
-			decodeImage(image);
+			decodeImageLegacy(image);
 			break;
 	}
 	this_thread::sleep_for(std::chrono::seconds(2));
