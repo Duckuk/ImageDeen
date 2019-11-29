@@ -15,22 +15,27 @@ void encodeImagev2(CImg<unsigned char> image, CImgDisplay &main_disp) {
 	char hexString[7];
 	unsigned int r, g, b;
 
+	//Resize image to make room for index row
 	image.resize(image.width() + 1, image.height(), image.depth(), image.spectrum(), 0);
 
 	CImgList<unsigned char> imageList = image.get_split('y');
 
 	for (int i = 0; i < 2; i++) {
 
+		//Do X axis when we're done with the Y axis
 		if (i > 0) {
+			//Resize image to make room for index column
 			image.resize(image.width(), image.height() + 1, image.depth(), image.spectrum(), 0);
 			imageList = image.get_split('x');
 		}
 
 		cimglist_for(imageList, l) {
 
+			//Convert index number to 6-character hexadecimal and split into 3
 			sprintf_s(hexString, "%06X", l);
 			sscanf_s(hexString, "%2x%2x%2x", &r, &b, &g); //0xRRBBGG
 
+			//Set index RGB values and make transparant
 			imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 0) = r;
 			imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 1) = g;
 			imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 2) = b;
@@ -42,7 +47,7 @@ void encodeImagev2(CImg<unsigned char> image, CImgDisplay &main_disp) {
 		random_shuffle(imageList.begin(), imageList.end());
 
 		main_disp.display(imageList, i > 0 ? 'x' : 'y');
-
+		
 		if (i > 0) {
 			image = imageList.get_append('x');
 		}
@@ -65,21 +70,25 @@ void decodeImagev2(CImg<unsigned char> image, CImgDisplay &main_disp) {
 
 	for (int ia = 0; ia < 2; ia++) {
 
+		//Do Y axis when we're done with the X axis
 		if (ia > 0) {
 			imageList = image.get_split('y');
 		}
 
-		for (int i = 0; i < 10; i++) { //Do 10 passes
+		for (int i = 0; i < 10; i++) { //Do 10 passes just in case
 			cimglist_for(imageList, l) {
 
+				//Store RGB values of the last pixel
 				int redValue = imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 0);
 				int greenValue = imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 1);
 				int blueValue = imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 2);
 
+				//Convert RGB values to hexadecimal
 				sprintf_s(redHex, "%02X", redValue);
 				sprintf_s(greenHex, "%02X", greenValue);
 				sprintf_s(blueHex, "%02X", blueValue);
 
+				//Combine hexadecimals and convert back to decimal
 				string hex = string(redHex) + string(blueHex) + string(greenHex);
 				long int decodedIndex = strtol(hex.c_str(), NULL, 16);
 
@@ -93,11 +102,13 @@ void decodeImagev2(CImg<unsigned char> image, CImgDisplay &main_disp) {
 		}
 
 		if (ia > 0) {
+			//Piece it together and cut off the index column
 			image = imageList.get_append('y');
 			image.resize(image.width() - 1, image.height(), image.depth(), image.spectrum(), 0);
 			cout << "Y axis done\n" << endl;
 		}
 		else {
+			//Piece it together and cut off the index row
 			image = imageList.get_append('x');
 			image.resize(image.width(), image.height() - 1, image.depth(), image.spectrum(), 0);
 			cout << "X axis done\n" << endl;
@@ -183,7 +194,7 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 	
-	srand(unsigned (time(0)));
+	srand(unsigned (time(NULL)));
 
 	CImg<unsigned char> image(argv[1]);
 
@@ -195,7 +206,6 @@ int main(int argc, char *argv[]) {
 	if (image.spectrum() < 3) {
 		image.resize(image.width(), image.height(), image.depth(), 3);
 	}
-	//image.channels(0, 3);
 
 	CImgDisplay main_disp(image, "Image", NULL, NULL, true);
 	while (main_disp.width() > 800 || main_disp.height() > 800) {
@@ -231,7 +241,6 @@ int main(int argc, char *argv[]) {
 		case 'c':
 			decodeImage(image);
 			break;
-
 	}
 	this_thread::sleep_for(std::chrono::seconds(2));
 	return 1;
