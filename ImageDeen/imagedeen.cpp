@@ -15,7 +15,7 @@ void encodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
 	char hexString[7];
 	unsigned int r, g, b;
 
-	//Resize image to make room for index row
+	//Resize image to make room for index column
 	image.resize(image.width() + 1, image.height(), image.depth(), image.spectrum(), 0);
 
 	CImgList<unsigned char> imageList = image.get_split('y');
@@ -24,7 +24,7 @@ void encodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
 
 		//Do X axis when we're done with the Y axis
 		if (i > 0) {
-			//Resize image to make room for index column
+			//Resize image to make room for index row
 			image.resize(image.width(), image.height() + 1, image.depth(), image.spectrum(), 0);
 			imageList = image.get_split('x');
 		}
