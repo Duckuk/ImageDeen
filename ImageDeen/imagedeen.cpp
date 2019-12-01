@@ -1,12 +1,13 @@
+#include <cctype>
+#include <chrono>
+#include <cstring>
 #include <iostream>
 #include <ostream>
-#include <cctype>
-#include <cstring>
 #include <string>
-#include <chrono>
 #include <thread>
-#include "libpng/png.h"
 #include "Clmg.h"
+#include "libpng/png.h"
+
 using namespace cimg_library;
 using namespace std;
 
