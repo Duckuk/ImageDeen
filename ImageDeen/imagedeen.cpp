@@ -80,7 +80,7 @@ void decodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
 		for (int i = 0; i < 10; i++) { //Do 10 passes just in case
 			cimglist_for(imageList, l) {
 
-				//Store RGB values of the last pixel
+				//Store RGB values of the index pixel
 				redValue = imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 0);
 				greenValue = imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 1);
 				blueValue = imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 2);
