@@ -391,7 +391,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	main_disp.show();
-	
+
 	cout << "Pick mode:" << endl
 		<< " E (Encode)" << endl
 		<< " D (Decode)" << endl
@@ -406,19 +406,23 @@ int main(int argc, char *argv[]) {
 		case 'e':
 			image.channels(0, 3);
 			if (flag) image.get_shared_channel(3).fill(255);
-			cout << "Use Key (Y/N): ";
-			if (tolower(getchar()) == 'y') {
-				encodeImage_key(image, main_disp, checksum);
-				break;
+			if (keyFile.good()) {
+				cout << "Use Key (Y/N): ";
+				if (tolower(getchar()) == 'y') {
+					encodeImage_key(image, main_disp, checksum);
+					break;
+				}
 			}
 			encodeImage(image, main_disp);
 			break;
 		case 'd':
 			image.channels(0, 3);
-			cout << "Use Key (Y/N): ";
-			if (tolower(getchar()) == 'y') {
-				decodeImage_key(image, main_disp, checksum);
-				break;
+			if (keyFile.good()) {
+				cout << "Use Key (Y/N): ";
+				if (tolower(getchar()) == 'y') {
+					decodeImage_key(image, main_disp, checksum);
+					break;
+				}
 			}
 			decodeImage(image, main_disp);
 			break;
