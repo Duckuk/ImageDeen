@@ -63,9 +63,10 @@ void encodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
 
 void decodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
 
-	char redHex[3];
-	char greenHex[3];
-	char blueHex[3];
+	char redHex[3], greenHex[3], blueHex[3];
+	int redValue, greenValue, blueValue;
+	string hex;
+	unsigned long decodedIndex;
 
 	CImgList<unsigned char> imageList = image.get_split('x');
 
@@ -80,9 +81,9 @@ void decodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
 			cimglist_for(imageList, l) {
 
 				//Store RGB values of the last pixel
-				int redValue = imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 0);
-				int greenValue = imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 1);
-				int blueValue = imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 2);
+				redValue = imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 0);
+				greenValue = imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 1);
+				blueValue = imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 2);
 
 				//Convert RGB values to hexadecimal
 				sprintf_s(redHex, "%02X", redValue);
@@ -90,8 +91,8 @@ void decodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
 				sprintf_s(blueHex, "%02X", blueValue);
 
 				//Combine hexadecimals and convert back to decimal
-				string hex = string(redHex) + string(blueHex) + string(greenHex);
-				long int decodedIndex = strtol(hex.c_str(), NULL, 16);
+				hex = string(redHex) + string(blueHex) + string(greenHex);
+				decodedIndex = strtoul(hex.c_str(), NULL, 16);
 
 				if (imageList[l] == decodedIndex) {
 					continue;
@@ -195,11 +196,15 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 	
+	bool flag = false;
+	char mode;
+	string key;
+	unsigned int checksum;
+
 	srand(unsigned (time(NULL)));
 
 	CImg<unsigned char> image(argv[1]);
 
-	bool flag = false;
 
 	if (image.spectrum() < 4) {
 		flag = true;
@@ -214,19 +219,18 @@ int main(int argc, char *argv[]) {
 	}
 
 	main_disp.show();
-
-	char axis;
+	
 	cout << "Pick mode:" << endl
 		<< " E (Encode)" << endl
 		<< " D (Decode)" << endl
 		<< " N (Legacy Encode)" << endl
 		<< " C (Legacy Decode)" << endl;
-	cin >> axis;
+	cin >> mode;
 	cin.ignore();
 
-	axis = tolower(axis);
+	mode = tolower(mode);
 
-	switch (axis) {
+	switch (mode) {
 		case 'e':
 			image.channels(0, 3);
 			if (flag) image.get_shared_channel(3).fill(255);
