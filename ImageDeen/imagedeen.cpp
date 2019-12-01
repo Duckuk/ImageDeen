@@ -72,8 +72,7 @@ void encodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned
 			image = imageList.get_append('y');
 		}
 	}
-
-	cout << hexChecksum << endl;
+	
 	image.save_png("output_e.png");
 	cout << "Wrote to 'output_e.png'" << endl;
 }
@@ -360,8 +359,10 @@ int main(int argc, char *argv[]) {
 	srand(unsigned (time(NULL)));
 
 	fstream keyFile("ImageDeenKey.txt", ios::in);
+	ifstream exeFile("ImageDeen.exe");
 
-	if (!bool(keyFile)) {
+	if (!keyFile.good() && exeFile.good()) {
+		exeFile.close();
 		keyFile.close(); keyFile.clear();
 		keyFile.open("ImageDeenKey.txt", ios::out);
 		keyFile << "PUT_YOUR_KEY_HERE" << endl;

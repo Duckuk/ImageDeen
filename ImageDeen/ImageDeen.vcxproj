@@ -74,7 +74,7 @@
     <TargetName>ImageDeen</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <TargetName>ImageDeenv2</TargetName>
+    <TargetName>ImageDeen</TargetName>
     <LibraryPath>$(MSBuildProjectDirectory)\libpng\libraries;$(LibraryPath)</LibraryPath>
     <IncludePath>$(MSBuildProjectDirectory)\libpng;$(IncludePath)</IncludePath>
   </PropertyGroup>
