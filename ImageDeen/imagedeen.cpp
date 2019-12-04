@@ -83,7 +83,6 @@ void encodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned
 void decodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned int checksum) {
 
 	unsigned long decodedChecksum;
-	bool checkedOut;
 	int redValue, greenValue, blueValue,
 		checkRedValue, checkGreenValue, checkBlueValue, checkAlphaValue;
 	char redHex[3], greenHex[3], blueHex[3],
@@ -158,7 +157,7 @@ void decodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned
 		else {
 			//Piece it together and cut off the index row
 			image = imageList.get_append('x');
-			image.resize(image.width(), image.height() - 1, image.depth(), image.spectrum(), 0);
+			image.resize(image.width(), image.height() - 2, image.depth(), image.spectrum(), 0);
 			cout << "X axis done\n" << endl;
 		}
 
@@ -173,7 +172,8 @@ void decodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned
 
 void encodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
 
-	char hexString[7];
+	char hexString[7],
+		fileName[256];
 	unsigned int r, g, b;
 
 	//Resize image to make room for index column
@@ -217,13 +217,16 @@ void encodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
 		}
 	}
 
-	image.save_png("output_e.png");
-	cout << "Wrote to 'output_e.png'" << endl;
+	sprintf(fileName, "output_e_%d.png", int(time(NULL)));
+
+	image.save_png(fileName);
+	cout << "Wrote to '" << fileName << '\'' << endl;
 }
 
 void decodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
 
-	char redHex[3], greenHex[3], blueHex[3];
+	char redHex[3], greenHex[3], blueHex[3],
+		fileName[256];
 	int redValue, greenValue, blueValue;
 	string hex;
 	unsigned long decodedIndex;
@@ -279,8 +282,10 @@ void decodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
 		main_disp.display(image);
 	}
 
-	image.save_png("output_d.png");
-	cout << "Wrote to 'output_d.png'" << endl;
+	sprintf(fileName, "output_d_%d.png", int(time(NULL)));
+
+	image.save_png(fileName);
+	cout << "Wrote to '" << fileName << '\'' << endl;
 }
 
 void encodeImageLegacy(CImg<unsigned char> image) {
