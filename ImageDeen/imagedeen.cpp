@@ -18,7 +18,8 @@ void encodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned
 
 	unsigned int r, g, b,
 		rC, gC, bC, aC;
-	char hexString[7], hexChecksum[9];
+	char hexString[7], hexChecksum[9],
+		fileName[256];
 
 	//Convert checksum number to 8-character hexadecimal and split into 4
 	sprintf_s(hexChecksum, "%08X", checksum);
@@ -73,8 +74,10 @@ void encodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned
 		}
 	}
 	
-	image.save_png("output_e.png");
-	cout << "Wrote to 'output_e.png'" << endl;
+	sprintf(fileName, "output_e_%d.png", time(NULL));
+
+	image.save_png(fileName);
+	cout << "Wrote to '" << fileName << '\'' << endl;
 }
 
 void decodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned int checksum) {
@@ -84,7 +87,8 @@ void decodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned
 	int redValue, greenValue, blueValue,
 		checkRedValue, checkGreenValue, checkBlueValue, checkAlphaValue;
 	char redHex[3], greenHex[3], blueHex[3],
-		checkRedHex[3], checkGreenHex[3], checkBlueHex[3], checkAlphaHex[3];
+		checkRedHex[3], checkGreenHex[3], checkBlueHex[3], checkAlphaHex[3],
+		fileName[256];
 	string hex;
 
 	CImgList<unsigned char> imageList = image.get_split('x');
@@ -161,8 +165,10 @@ void decodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned
 		main_disp.display(image);
 	}
 	
-	image.save_png("output_d.png");
-	cout << "Wrote to 'output_d.png'" << endl;
+	sprintf(fileName, "output_d_%d.png", time(NULL));
+
+	image.save_png(fileName);
+	cout << "Wrote to '" << fileName << '\'' << endl;
 }
 
 void encodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
