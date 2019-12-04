@@ -74,7 +74,7 @@ void encodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned
 		}
 	}
 	
-	sprintf(fileName, "output_e_%d.png", time(NULL));
+	sprintf(fileName, "output_e_%d.png", int(time(NULL)));
 
 	image.save_png(fileName);
 	cout << "Wrote to '" << fileName << '\'' << endl;
@@ -165,7 +165,7 @@ void decodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned
 		main_disp.display(image);
 	}
 	
-	sprintf(fileName, "output_d_%d.png", time(NULL));
+	sprintf(fileName, "output_d_%d.png", int(time(NULL)));
 
 	image.save_png(fileName);
 	cout << "Wrote to '" << fileName << '\'' << endl;
