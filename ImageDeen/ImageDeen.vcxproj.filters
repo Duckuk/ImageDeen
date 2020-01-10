@@ -23,30 +23,6 @@
     <ClInclude Include="Clmg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="lodepng.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="libpng\pngconf.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="libpng\pngdebug.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="libpng\pnginfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="libpng\pnglibconf.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="libpng\pngpriv.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="libpng\pngstruct.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="libpng\png.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>

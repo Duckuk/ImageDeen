@@ -8,7 +8,7 @@
 #include <thread>
 #include "Clmg.h"
 #include "CRC.h"
-#include "libpng/png.h"
+#include "png.h"
 
 using namespace cimg_library;
 using namespace std;
