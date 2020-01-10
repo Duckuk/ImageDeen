@@ -381,7 +381,7 @@ int main(int argc, char *argv[]) {
 		keyFile.open("ImageDeenKey.txt", ios::in);
 	}
 
-	if (!exeFile.good())
+	if (exeFile.good())
 		getline(keyFile, key);
 
 	checksum = CRC::Calculate(key.c_str(), key.length(), CRC::CRC_32());
