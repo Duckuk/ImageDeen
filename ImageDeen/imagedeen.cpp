@@ -34,7 +34,7 @@ void encodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned
 
 		//Do X axis when we're done with the Y axis
 		if (i > 0) {
-			//Resize image to make room for index row and checksum
+			//Resize image to make room for index and checksum rows
 			image.resize(image.width(), image.height() + 2, image.depth(), image.spectrum(), 0);
 			imageList = image.get_split('x');
 		}
