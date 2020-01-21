@@ -293,7 +293,7 @@ int main(int argc, char *argv[]) {
 
 	if (argc < 2) {
 		MessageBoxA(NULL, "Image file not specified.", NULL, MB_OK | MB_ICONERROR);
-		return 0;
+		return 1;
 	}
 	
 	bool exit = false;
@@ -386,5 +386,5 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	this_thread::sleep_for(std::chrono::seconds(2));
-	return 1;
+	return 0;
 }
