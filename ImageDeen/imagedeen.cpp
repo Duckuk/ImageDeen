@@ -296,6 +296,7 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 	
+	bool exit = false;
 	bool flag = false;
 	char mode;
 	CImg<unsigned char> image(argv[1]);
@@ -345,39 +346,44 @@ int main(int argc, char *argv[]) {
 		<< " N (Legacy Encode)" << endl
 		<< " C (Legacy Decode)" << endl;
 	
-	switch (tolower(_getch())) {
-		case 'e':
-			image.channels(0, 3);
-			if (flag) image.get_shared_channel(3).fill(255);
-			if (keyFile.good()) {
-				cout << "Use Key (Y/N): ";
-				if (tolower(_getch()) == 'y') {
-					encodeImage_key(image, main_disp, checksum);
-					break;
+	while (!exit) {
+		switch (tolower(_getch())) {
+			case 'e':
+				image.channels(0, 3);
+				if (flag) image.get_shared_channel(3).fill(255);
+				if (keyFile.good()) {
+					cout << "Use Key (Y/N): ";
+					if (tolower(_getch()) == 'y') {
+						encodeImage_key(image, main_disp, checksum);
+						break;
+					}
 				}
-			}
-			encodeImage(image, main_disp);
-			break;
-		case 'd':
-			image.channels(0, 3);
-			if (keyFile.good()) {
-				cout << "Use Key (Y/N): ";
-				if (tolower(_getch()) == 'y') {
-					decodeImage_key(image, main_disp, checksum);
-					break;
+				encodeImage(image, main_disp);
+				exit = true;
+				break;
+			case 'd':
+				image.channels(0, 3);
+				if (keyFile.good()) {
+					cout << "Use Key (Y/N): ";
+					if (tolower(_getch()) == 'y') {
+						decodeImage_key(image, main_disp, checksum);
+						break;
+					}
 				}
-			}
-			decodeImage(image, main_disp);
-			break;
-		case 'n':
-			encodeImageLegacy(image);
-			break;
-		case 'c':
-			decodeImageLegacy(image);
-			break;
-		default:
-			cerr << "Error: Unknown mode";
-			break;
+				decodeImage(image, main_disp);
+				exit = true;
+				break;
+			case 'n':
+				encodeImageLegacy(image);
+				exit = true;
+				break;
+			case 'c':
+				decodeImageLegacy(image);
+				exit = true;
+				break;
+			default:
+				cerr << "Error: Unknown mode" << endl;
+		}
 	}
 	this_thread::sleep_for(std::chrono::seconds(2));
 	return 1;
