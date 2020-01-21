@@ -3,7 +3,6 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
-#include <ostream>
 #include <string>
 #include <thread>
 #include "Clmg.h"
