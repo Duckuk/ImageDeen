@@ -1,5 +1,6 @@
 #include <cctype>
 #include <chrono>
+#include <conio.h>
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -10,9 +11,9 @@
 #include "legacy.cpp"
 #include "png.h"
 
+using std::cout;
+using std::endl;
 using namespace cimg_library;
-using namespace std;
-
 
 void encodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned int checksum) {
 
@@ -343,18 +344,14 @@ int main(int argc, char *argv[]) {
 		<< " D (Decode)" << endl
 		<< " N (Legacy Encode)" << endl
 		<< " C (Legacy Decode)" << endl;
-	cin >> mode;
-	cin.ignore();
-
-	mode = tolower(mode);
-
-	switch (mode) {
+	
+	switch (tolower(_getch())) {
 		case 'e':
 			image.channels(0, 3);
 			if (flag) image.get_shared_channel(3).fill(255);
 			if (keyFile.good()) {
 				cout << "Use Key (Y/N): ";
-				if (tolower(getchar()) == 'y') {
+				if (tolower(_getch()) == 'y') {
 					encodeImage_key(image, main_disp, checksum);
 					break;
 				}
@@ -365,7 +362,7 @@ int main(int argc, char *argv[]) {
 			image.channels(0, 3);
 			if (keyFile.good()) {
 				cout << "Use Key (Y/N): ";
-				if (tolower(getchar()) == 'y') {
+				if (tolower(_getch()) == 'y') {
 					decodeImage_key(image, main_disp, checksum);
 					break;
 				}
