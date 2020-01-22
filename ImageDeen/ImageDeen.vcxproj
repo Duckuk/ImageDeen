@@ -120,7 +120,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>%(AdditionalDependencies);.\libraries\libpng16.lib;.\libraries\zlib.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);.\libraries\libpng16.lib;.\libraries\zlib.lib;.\libraries\pdcurses.lib</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <TreatLinkerWarningAsErrors>
       </TreatLinkerWarningAsErrors>
@@ -133,6 +133,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\pdcurses\curses.h" />
     <ClInclude Include="Clmg.h" />
     <ClInclude Include="CRC.h" />
     <ClInclude Include="resource.h" />

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{7770D804-B73B-4BCE-B43C-81C541EC960B}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <PDCURSES_SRCDIR>$(SolutionDir)pdcurses\</PDCURSES_SRCDIR>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <NMakeOutput>pdcurses.exe</NMakeOutput>
+    <NMakePreprocessorDefinitions>NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeBuildCommandLine>nmake /f "$(PDCURSES_SRCDIR)wincon\Makefile.vc" pdcurses.lib</NMakeBuildCommandLine>
+    <OutDir>$(SolutionDir)ImageDeen\libraries\</OutDir>
+    <IntDir>$(SolutionDir)ImageDeen\libraries\intermediates\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <NMakeOutput>pdcurses.exe</NMakeOutput>
+    <NMakePreprocessorDefinitions>WIN32;NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="common\borland.lrf" />
+    <None Include="common\icon32.xpm" />
+    <None Include="common\icon64.xpm" />
+    <None Include="common\libobjs.mif" />
+    <None Include="common\watcom.mif" />
+    <None Include="wincon\Makefile.vc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="wincon\pdcclip.c" />
+    <ClCompile Include="wincon\pdcdisp.c" />
+    <ClCompile Include="wincon\pdcgetsc.c" />
+    <ClCompile Include="wincon\pdckbd.c" />
+    <ClCompile Include="wincon\pdcscrn.c" />
+    <ClCompile Include="wincon\pdcsetsc.c" />
+    <ClCompile Include="wincon\pdcutil.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="common\acs437.h" />
+    <ClInclude Include="common\acsgr.h" />
+    <ClInclude Include="common\acsuni.h" />
+    <ClInclude Include="common\font437.h" />
+    <ClInclude Include="common\iconbmp.h" />
+    <ClInclude Include="curspriv.h" />
+    <ClInclude Include="panel.h" />
+    <ClInclude Include="wincon\pdcwin.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="common\pdcurses.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -8,11 +8,10 @@
 #include <thread>
 #include "Clmg.h"
 #include "CRC.h"
+#include "curses.h"
 #include "legacy.cpp"
 #include "png.h"
 
-using std::cout;
-using std::endl;
 using namespace cimg_library;
 
 void encodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned int checksum) {
@@ -59,7 +58,8 @@ void encodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned
 				imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 2) = bC;
 				imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 3) = aC;
 			}
-			cout << hexString << endl;
+			printw("%s\n", hexString);
+			refresh();
 		}
 
 		random_shuffle(imageList.begin(), imageList.end());
@@ -78,7 +78,8 @@ void encodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned
 	sprintf(fileName, "output_e_%d.png", int(time(NULL)));
 
 	image.save_png(fileName);
-	cout << "Wrote to '" << fileName << '\'' << endl;
+	printw("Wrote to \'%s\'", fileName);
+	refresh();
 }
 
 void decodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned int checksum) {
@@ -121,7 +122,8 @@ void decodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned
 					decodedChecksum = strtoul(hex.c_str(), NULL, 16);
 
 					if (decodedChecksum != checksum) {
-						cerr << "Error: Mismatched checksum" << endl;
+						printw("Error: Mismatched checksum\n");
+						refresh();
 						return;
 					}
 				}
@@ -146,21 +148,23 @@ void decodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned
 				imageList[l].swap(imageList[decodedIndex]);
 
 			}
-			cout << "Pass: " << i + 1 << endl;
+			printw("Pass: %i\n", i + 1);
+			refresh();
 		}
 
 		if (ia > 0) {
 			//Piece it together and cut off the index column
 			image = imageList.get_append('y');
 			image.resize(image.width() - 1, image.height(), image.depth(), image.spectrum(), 0);
-			cout << "Y axis done\n" << endl;
+			printw("Y axis done\n\n");
 		}
 		else {
 			//Piece it together and cut off the index row
 			image = imageList.get_append('x');
 			image.resize(image.width(), image.height() - 2, image.depth(), image.spectrum(), 0);
-			cout << "X axis done\n" << endl;
+			printw("X axis done\n\n");
 		}
+		refresh();
 
 		main_disp.display(image);
 	}
@@ -168,7 +172,8 @@ void decodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned
 	sprintf(fileName, "output_d_%d.png", int(time(NULL)));
 
 	image.save_png(fileName);
-	cout << "Wrote to '" << fileName << '\'' << endl;
+	printw("Wrote to \'%s\'", fileName);
+	refresh();
 }
 
 void encodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
@@ -176,7 +181,7 @@ void encodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
 	char hexString[7],
 		fileName[256];
 	unsigned int r, g, b;
-
+	
 	//Resize image to make room for index column
 	image.resize(image.width() + 1, image.height(), image.depth(), image.spectrum(), 0);
 
@@ -202,8 +207,9 @@ void encodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
 			imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 1) = g;
 			imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 2) = b;
 			imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 3) = 0;
-
-			cout << hexString << endl;
+			
+			printw("%s\n", hexString);
+			refresh();
 		}
 
 		random_shuffle(imageList.begin(), imageList.end());
@@ -221,7 +227,8 @@ void encodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
 	sprintf(fileName, "output_e_%d.png", int(time(NULL)));
 
 	image.save_png(fileName);
-	cout << "Wrote to '" << fileName << '\'' << endl;
+	printw("Wrote to \'%s\'", fileName);
+	refresh();
 }
 
 void decodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
@@ -264,21 +271,22 @@ void decodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
 				imageList[l].swap(imageList[decodedIndex]);
 
 			}
-			cout << "Pass: " << i+1 << endl;
+			printw("Pass: %i\n", i+1);
 		}
 
 		if (ia > 0) {
 			//Piece it together and cut off the index column
 			image = imageList.get_append('y');
 			image.resize(image.width() - 1, image.height(), image.depth(), image.spectrum(), 0);
-			cout << "Y axis done\n" << endl;
+			printw("Y axis done\n\n");
 		}
 		else {
 			//Piece it together and cut off the index row
 			image = imageList.get_append('x');
 			image.resize(image.width(), image.height() - 1, image.depth(), image.spectrum(), 0);
-			cout << "X axis done\n" << endl;
+			printw("X axis done\n\n");
 		}
+		refresh();
 
 		main_disp.display(image);
 	}
@@ -286,7 +294,8 @@ void decodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
 	sprintf(fileName, "output_d_%d.png", int(time(NULL)));
 
 	image.save_png(fileName);
-	cout << "Wrote to '" << fileName << '\'' << endl;
+	printw("Wrote to \'%s\'", fileName);
+	refresh();
 }
 
 int main(int argc, char *argv[]) {
@@ -296,9 +305,14 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 	
+	initscr();	//Initialize curses
+	cbreak();
+	noecho();
+	idlok(stdscr, true);
+	scrollok(stdscr, true);
+
 	bool exit = false;
 	bool flag = false;
-	char mode;
 	CImg<unsigned char> image(argv[1]);
 	string key;
 	unsigned int checksum;
@@ -312,7 +326,7 @@ int main(int argc, char *argv[]) {
 		exeFile.close();
 		keyFile.close(); keyFile.clear();
 		keyFile.open("ImageDeenKey.txt", ios::out);
-		keyFile << "PUT_YOUR_KEY_HERE" << endl;
+		keyFile << "PUT_YOUR_KEY_HERE" << std::endl;
 		keyFile.close(); keyFile.clear();
 		keyFile.open("ImageDeenKey.txt", ios::in);
 	}
@@ -323,7 +337,7 @@ int main(int argc, char *argv[]) {
 	checksum = CRC::Calculate(key.c_str(), key.length(), CRC::CRC_32());
 
 	if (key == "PUT_YOUR_KEY_HERE") {
-		cout << "Please set your key in ImageDeenKey.txt" << endl;
+		printw("Please set your key in ImageDeenKey.txt\n");
 	}
 
 	if (image.spectrum() < 4) {
@@ -340,21 +354,22 @@ int main(int argc, char *argv[]) {
 
 	main_disp.show();
 
-	cout << "Pick mode:" << endl
-		<< " E (Encode)" << endl
-		<< " D (Decode)" << endl
-		<< " N (Legacy Encode)" << endl
-		<< " C (Legacy Decode)" << endl;
+	printw(	"Pick mode:\n" 
+			" E (Encode)\n"
+			" D (Decode)\n"
+			" N (Legacy Encode)\n"
+			" C (Legacy Decode)\n");
 	
 	while (!exit) {
-		switch (tolower(_getch())) {
+		switch (tolower(getch())) {
 			case 'e':
 				image.channels(0, 3);
 				if (flag) image.get_shared_channel(3).fill(255);
 				if (keyFile.good()) {
-					cout << "Use Key (Y/N): ";
-					if (tolower(_getch()) == 'y') {
+					printw("Use Key (Y/N):\n");
+					if (tolower(getch()) == 'y') {
 						encodeImage_key(image, main_disp, checksum);
+						exit = true;
 						break;
 					}
 				}
@@ -364,9 +379,10 @@ int main(int argc, char *argv[]) {
 			case 'd':
 				image.channels(0, 3);
 				if (keyFile.good()) {
-					cout << "Use Key (Y/N): ";
-					if (tolower(_getch()) == 'y') {
+					printw("Use Key (Y/N):\n");
+					if (tolower(getch()) == 'y') {
 						decodeImage_key(image, main_disp, checksum);
+						exit = true;
 						break;
 					}
 				}
@@ -374,17 +390,20 @@ int main(int argc, char *argv[]) {
 				exit = true;
 				break;
 			case 'n':
+				endwin();
 				encodeImageLegacy(image);
-				exit = true;
-				break;
+				this_thread::sleep_for(std::chrono::seconds(2));
+				return 0;
 			case 'c':
+				endwin();
 				decodeImageLegacy(image);
-				exit = true;
-				break;
+				this_thread::sleep_for(std::chrono::seconds(2));
+				return 0;
 			default:
-				cerr << "Error: Unknown mode" << endl;
+				continue;
 		}
 	}
 	this_thread::sleep_for(std::chrono::seconds(2));
+	endwin();
 	return 0;
 }
