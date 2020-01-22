@@ -1,16 +1,11 @@
-#include <cctype>
 #include <chrono>
-#include <conio.h>
-#include <cstring>
 #include <fstream>
-#include <iostream>
 #include <string>
 #include <thread>
 #include "Clmg.h"
 #include "CRC.h"
 #include "curses.h"
 #include "legacy.cpp"
-#include "png.h"
 
 using namespace cimg_library;
 
