@@ -355,6 +355,7 @@ int main(int argc, char *argv[]) {
 					cout << "Use Key (Y/N): ";
 					if (tolower(_getch()) == 'y') {
 						encodeImage_key(image, main_disp, checksum);
+						exit = true;
 						break;
 					}
 				}
@@ -367,6 +368,7 @@ int main(int argc, char *argv[]) {
 					cout << "Use Key (Y/N): ";
 					if (tolower(_getch()) == 'y') {
 						decodeImage_key(image, main_disp, checksum);
+						exit = true;
 						break;
 					}
 				}
