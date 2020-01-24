@@ -152,16 +152,16 @@ void decodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned
 			image = imageList.get_append('y');
 			image.resize(image.width() - 1, image.height(), image.depth(), image.spectrum(), 0);
 			printw("Y axis done\n\n");
+			main_disp.display(image.get_resize(main_disp.width(), main_disp.height(), image.depth(), image.spectrum(), 3));
 		}
 		else {
 			//Piece it together and cut off the index row
 			image = imageList.get_append('x');
 			image.resize(image.width(), image.height() - 2, image.depth(), image.spectrum(), 0);
 			printw("X axis done\n\n");
+			main_disp.display(image);
 		}
 		refresh();
-
-		main_disp.display(image);
 	}
 	
 	sprintf(fileName, "output_d_%d.png", int(time(NULL)));
@@ -274,16 +274,16 @@ void decodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
 			image = imageList.get_append('y');
 			image.resize(image.width() - 1, image.height(), image.depth(), image.spectrum(), 0);
 			printw("Y axis done\n\n");
+			main_disp.display(image.get_resize(main_disp.width(), main_disp.height(), image.depth(), image.spectrum(), 3));
 		}
 		else {
 			//Piece it together and cut off the index row
 			image = imageList.get_append('x');
 			image.resize(image.width(), image.height() - 1, image.depth(), image.spectrum(), 0);
 			printw("X axis done\n\n");
+			main_disp.display(image);
 		}
 		refresh();
-
-		main_disp.display(image);
 	}
 
 	sprintf(fileName, "output_d_%d.png", int(time(NULL)));
@@ -309,6 +309,7 @@ int main(int argc, char *argv[]) {
 	bool exit = false;
 	bool flag = false;
 	CImg<unsigned char> image(argv[1]);
+	int dimensions[2] = { image.width(), image.height() };
 	string key;
 	unsigned int checksum;
 
@@ -341,15 +342,15 @@ int main(int argc, char *argv[]) {
 	if (image.spectrum() < 3) {
 		image.resize(image.width(), image.height(), image.depth(), 3);
 	}
-
-	CImgDisplay main_disp(image, "Image", NULL, NULL, true);
-	while (main_disp.width() > 800 || main_disp.height() > 800) {
-		main_disp.resize(main_disp.width() / 2, main_disp.height() / 2, true);
+	
+	while (dimensions[0] > 800 || dimensions[1] > 800) {
+		dimensions[0] = dimensions[0] / 2;
+		dimensions[1] = dimensions[1] / 2;
 	}
 
-	main_disp.show();
+	CImgDisplay main_disp(image.get_resize(dimensions[0], dimensions[1], image.depth(), image.spectrum(), 3));
 
-	printw(	"Pick mode:\n" 
+	printw(	"Pick mode:\n"
 			" E (Encode)\n"
 			" D (Decode)\n"
 			" N (Legacy Encode)\n"
