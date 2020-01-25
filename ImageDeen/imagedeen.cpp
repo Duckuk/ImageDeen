@@ -300,6 +300,8 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 	
+	SetConsoleTitle((LPCSTR)"ImageDeen");
+
 	initscr();	//Initialize curses
 	cbreak();
 	noecho();
