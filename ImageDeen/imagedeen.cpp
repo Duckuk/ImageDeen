@@ -9,6 +9,12 @@
 
 using namespace cimg_library;
 
+void displayImage(CImgDisplay &main_disp, CImg<unsigned char> image) {
+	main_disp.display(image.get_resize(main_disp.width(), main_disp.height(), image.depth(), image.spectrum(), 3));
+	if (main_disp.is_closed())
+		main_disp.show();
+}
+
 void encodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned int checksum) {
 
 	unsigned int r, g, b,
@@ -350,7 +356,8 @@ int main(int argc, char *argv[]) {
 		dimensions[1] = dimensions[1] / 2;
 	}
 
-	CImgDisplay main_disp(image.get_resize(dimensions[0], dimensions[1], image.depth(), image.spectrum(), 3));
+	CImgDisplay main_disp(dimensions[0], dimensions[1], "Image", NULL, false, true);
+	thread displayImageThread(displayImage, ref(main_disp), image);
 
 	printw(	"Pick mode:\n"
 			" E (Encode)\n"
@@ -363,6 +370,8 @@ int main(int argc, char *argv[]) {
 			case 'e':
 				image.channels(0, 3);
 				if (flag) image.get_shared_channel(3).fill(255);
+				if (displayImageThread.joinable())
+					displayImageThread.join();
 				if (keyFile.good()) {
 					printw("Use Key (Y/N):\n");
 					if (tolower(getch()) == 'y') {
@@ -376,6 +385,8 @@ int main(int argc, char *argv[]) {
 				break;
 			case 'd':
 				image.channels(0, 3);
+				if (displayImageThread.joinable())
+					displayImageThread.join();
 				if (keyFile.good()) {
 					printw("Use Key (Y/N):\n");
 					if (tolower(getch()) == 'y') {
