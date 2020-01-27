@@ -1,3 +1,5 @@
+#define PDC_WIDE
+
 #include <chrono>
 #include <fstream>
 #include <string>
@@ -9,10 +11,47 @@
 
 using namespace cimg_library;
 
+
+int TERM_X = 96;
+int TERM_Y = 16;
+
+WINDOW *mode_border, *mode_win;
+WINDOW *log_border, *log_win;
+WINDOW *hotkey_border, *hotkey_win;
+
+enum EncodeTypes {
+	NONE = -1,
+	ENCODE,
+	DECODE,
+	ENCODE_LEGACY,
+	DECODE_LEGACY
+};
+
+void writeLog(const char * message) {
+	wprintw(log_win, "\n%s", message);
+	wrefresh(log_win);
+}
+
 void displayImage(CImgDisplay &main_disp, CImg<unsigned char> image) {
 	main_disp.display(image.get_resize(main_disp.width(), main_disp.height(), image.depth(), image.spectrum(), 3));
 	if (main_disp.is_closed())
 		main_disp.show();
+	writeLog("Preview image ready.");
+}
+
+void setTitle(WINDOW* border_win, const char * text, bool faded = false) {
+	const chtype bar = L'\u2588';
+	if (!faded) {
+		wattron(border_win, A_REVERSE | A_BOLD);
+		mvwprintw(border_win, 0, (getmaxx(border_win) / 2) - (strlen(text) / 2), text);
+		wattroff(border_win, A_REVERSE | A_BOLD);
+	}
+	else {
+		wattron(border_win, A_REVERSE | A_BLINK);
+		mvwprintw(border_win, 0, (getmaxx(border_win) / 2) - (strlen(text) / 2), text);
+		wattroff(border_win, A_REVERSE | A_BLINK);
+	}
+	wrefresh(border_win);
 }
 
 void encodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned int checksum) {
@@ -21,6 +60,7 @@ void encodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned
 		rC, gC, bC, aC;
 	char hexString[7], hexChecksum[9],
 		fileName[256];
+	float progress = 0;
 
 	//Convert checksum number to 8-character hexadecimal and split into 4
 	sprintf_s(hexChecksum, "%08X", checksum);
@@ -39,6 +79,8 @@ void encodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned
 			image.resize(image.width(), image.height() + 2, image.depth(), image.spectrum(), 0);
 			imageList = image.get_split('x');
 		}
+
+		waddch(log_win, '\n');
 
 		cimglist_for(imageList, l) {
 
@@ -59,8 +101,18 @@ void encodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned
 				imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 2) = bC;
 				imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 3) = aC;
 			}
-			printw("%s\n", hexString);
-			refresh();
+
+			if (i > 0) {
+				wclrtoeol(log_win);
+				wmove(log_win, getcury(log_win), 0);
+				wprintw(log_win, "2nd Pass: %.1f%%", (float)(image.width() - (image.width() - l - 1)) / (float)image.width() * 100);
+			}
+			else {
+				wclrtoeol(log_win);
+				wmove(log_win, getcury(log_win), 0);
+				wprintw(log_win, "1st Pass: %.1f%%", (float)(image.height() - (image.height() - l - 1)) / (float)image.height() * 100);
+			}
+			wrefresh(log_win);
 		}
 
 		random_shuffle(imageList.begin(), imageList.end());
@@ -79,8 +131,8 @@ void encodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned
 	sprintf(fileName, "output_e_%d.png", int(time(NULL)));
 
 	image.save_png(fileName);
-	printw("Wrote to \'%s\'", fileName);
-	refresh();
+	wprintw(log_win, "\nWrote to \'%s\'", fileName);
+	wrefresh(log_win);
 }
 
 void decodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned int checksum) {
@@ -123,8 +175,10 @@ void decodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned
 					decodedChecksum = strtoul(hex.c_str(), NULL, 16);
 
 					if (decodedChecksum != checksum) {
-						printw("Error: Mismatched checksum\n");
-						refresh();
+						wattron(log_win, A_BOLD | A_BLINK);
+						writeLog("Error: Mismatched checksum");
+						wattroff(log_win, A_BOLD | A_BLINK);
+						wrefresh(log_win);
 						return;
 					}
 				}
@@ -149,32 +203,32 @@ void decodeImage_key(CImg<unsigned char> image, CImgDisplay& main_disp, unsigned
 				imageList[l].swap(imageList[decodedIndex]);
 
 			}
-			printw("Pass: %i\n", i + 1);
-			refresh();
+			wprintw(log_win, "Pass: %i\n", i + 1);
+			wrefresh(log_win);
 		}
 
 		if (ia > 0) {
 			//Piece it together and cut off the index column
 			image = imageList.get_append('y');
 			image.resize(image.width() - 1, image.height(), image.depth(), image.spectrum(), 0);
-			printw("Y axis done\n\n");
+			writeLog("Y axis done\n");
 			main_disp.display(image.get_resize(main_disp.width(), main_disp.height(), image.depth(), image.spectrum(), 3));
 		}
 		else {
 			//Piece it together and cut off the index row
 			image = imageList.get_append('x');
 			image.resize(image.width(), image.height() - 2, image.depth(), image.spectrum(), 0);
-			printw("X axis done\n\n");
+			writeLog("X axis done\n");
 			main_disp.display(image);
 		}
-		refresh();
+		wrefresh(log_win);
 	}
 	
 	sprintf(fileName, "output_d_%d.png", int(time(NULL)));
 
 	image.save_png(fileName);
-	printw("Wrote to \'%s\'", fileName);
-	refresh();
+	wprintw(log_win, "\nWrote to \'%s\'", fileName);
+	wrefresh(log_win);
 }
 
 void encodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
@@ -197,6 +251,8 @@ void encodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
 			imageList = image.get_split('x');
 		}
 
+		waddch(log_win, '\n');
+
 		cimglist_for(imageList, l) {
 
 			//Convert index number to 6-character hexadecimal and split into 3
@@ -209,8 +265,17 @@ void encodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
 			imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 2) = b;
 			imageList[l](imageList[l].width() - 1, imageList[l].height() - 1, image.depth() - 1, 3) = 0;
 			
-			printw("%s\n", hexString);
-			refresh();
+			if (i > 0) {
+				wclrtoeol(log_win);
+				wmove(log_win, getcury(log_win), 0);
+				wprintw(log_win, "2nd Pass: %.1f%%", (float)(image.width() - (image.width() - l - 1)) / (float)image.width() * 100);
+			}
+			else {
+				wclrtoeol(log_win);
+				wmove(log_win, getcury(log_win), 0);
+				wprintw(log_win, "1st Pass: %.1f%%", (float)(image.height() - (image.height() - l - 1)) / (float)image.height() * 100);
+			}
+			wrefresh(log_win);
 		}
 
 		random_shuffle(imageList.begin(), imageList.end());
@@ -228,8 +293,8 @@ void encodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
 	sprintf(fileName, "output_e_%d.png", int(time(NULL)));
 
 	image.save_png(fileName);
-	printw("Wrote to \'%s\'", fileName);
-	refresh();
+	wprintw(log_win, "\nWrote to \'%s\'", fileName);
+	wrefresh(log_win);
 }
 
 void decodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
@@ -272,31 +337,32 @@ void decodeImage(CImg<unsigned char> image, CImgDisplay &main_disp) {
 				imageList[l].swap(imageList[decodedIndex]);
 
 			}
-			printw("Pass: %i\n", i+1);
+			wprintw(log_win, "Pass: %i\n", i+1);
+			wrefresh(log_win);
 		}
 
 		if (ia > 0) {
 			//Piece it together and cut off the index column
 			image = imageList.get_append('y');
 			image.resize(image.width() - 1, image.height(), image.depth(), image.spectrum(), 0);
-			printw("Y axis done\n\n");
+			writeLog("Y axis done\n");
 			main_disp.display(image.get_resize(main_disp.width(), main_disp.height(), image.depth(), image.spectrum(), 3));
 		}
 		else {
 			//Piece it together and cut off the index row
 			image = imageList.get_append('x');
 			image.resize(image.width(), image.height() - 1, image.depth(), image.spectrum(), 0);
-			printw("X axis done\n\n");
+			writeLog("X axis done\n");
 			main_disp.display(image);
 		}
-		refresh();
+		wrefresh(log_win);
 	}
 
 	sprintf(fileName, "output_d_%d.png", int(time(NULL)));
 
 	image.save_png(fileName);
-	printw("Wrote to \'%s\'", fileName);
-	refresh();
+	wprintw(log_win, "\nWrote to \'%s\'", fileName);
+	wrefresh(log_win);
 }
 
 int main(int argc, char *argv[]) {
@@ -305,21 +371,90 @@ int main(int argc, char *argv[]) {
 		MessageBoxA(NULL, "Image file not specified.", NULL, MB_OK | MB_ICONERROR);
 		return 1;
 	}
-	
+
 	SetConsoleTitle((LPCSTR)"ImageDeen");
 
 	initscr();	//Initialize curses
 	cbreak();
 	noecho();
-	idlok(stdscr, true);
-	scrollok(stdscr, true);
+	resize_term(TERM_Y, TERM_X);
+	curs_set(0);
+
+	log_border = newwin(TERM_Y-0, TERM_X-23, 0, 23);
+	wborder(log_border,
+		L'\u2588' | A_BOLD,	//Left side
+		L'\u2588' | A_BOLD,	//Right side
+		L'\u2580' | A_BOLD,	//Top side
+		L'\u2584' | A_BOLD,	//Bottom side
+		L'\u2588' | A_BOLD,	//Top left corner
+		L'\u2588' | A_BOLD,	//Top right corner
+		L'\u2588' | A_BOLD,	//Bottom left corner
+		L'\u2588' | A_BOLD	//Bottom right corner
+	);
+	setTitle(log_border, "Log");
+	wrefresh(log_border);
+	log_win = derwin(log_border, getmaxy(log_border)-2, getmaxx(log_border)-4, 1, 2);
+	scrollok(log_win, true);
+	wmove(log_win, getmaxy(log_win)-1, 0);
+	wrefresh(log_win);
+
+	writeLog("ImageDeen is now preparing.\nPlease watch warmly until it is ready.\n");
+
+	mode_border = newwin(7, 24, 0, 0);
+	wborder( mode_border,
+		L'\u2588' | A_BOLD,	//Left side
+		L'\u2588' | A_BOLD,	//Right side
+		L'\u2580' | A_BOLD,	//Top side
+		' ' | A_BOLD,	//Bottom side
+		L'\u2588' | A_BOLD,	//Top left corner
+		L'\u2588' | A_BOLD,	//Top right corner
+		L'\u2588' | A_BOLD,	//Bottom left corner
+		L'\u2588' | A_BOLD	//Bottom right corner
+	);
+	setTitle(mode_border, "Mode");
+	wrefresh(mode_border);
+	mode_win = derwin(mode_border, getmaxy(mode_border)-1, getmaxx(mode_border)-4, 1, 2);
+	scrollok(mode_win, true);
+	
+	hotkey_border = newwin(TERM_Y-7, 24, 7, 0);
+	wborder(hotkey_border,
+		L'\u2588' | A_BOLD,	//Left side
+		L'\u2588' | A_BOLD,	//Right side
+		L'\u2580' | A_BOLD,	//Top side
+		L'\u2584' | A_BOLD,	//Bottom side
+		L'\u2588' | A_BOLD,	//Top left corner
+		L'\u2588' | A_BOLD,	//Top right corner
+		L'\u2588' | A_BOLD,	//Bottom left corner
+		L'\u2588' | A_BOLD	//Bottom right corner
+	);
+	setTitle(hotkey_border, "Hotkeys");
+	wrefresh(hotkey_border);
+	hotkey_win = derwin(hotkey_border, getmaxy(hotkey_border)-1, getmaxx(hotkey_border)-4, 1, 2);
+	scrollok(mode_win, true);
 
 	bool exit = false;
 	bool flag = false;
-	CImg<unsigned char> image(argv[1]);
-	int dimensions[2] = { image.width(), image.height() };
+	bool keyed = true;
+	const char * modes[4] = {
+		"E (Encode)",
+		"D (Decode)",
+		"N (Legacy Encode)",
+		"C (Legacy Decode)"
+	};
+	const char * hotkeys[2] = {
+		"ENTER (Begin)",
+		"K (Key)"
+	};
+	EncodeTypes modeSelected = NONE;
+	string fileName = argv[1]; fileName = fileName.substr(fileName.rfind('\\') + 1).c_str();
 	string key;
 	unsigned int checksum;
+
+	wprintw(log_win, "\nAttempting to open \'%s\'...", fileName.c_str());
+	CImg<unsigned char> image(argv[1]);
+	writeLog("Done!");
+
+	int dimensions[2] = { image.width(), image.height() };
 
 	srand(unsigned (time(NULL)));
 
@@ -337,12 +472,13 @@ int main(int argc, char *argv[]) {
 
 	if (exeFile.good())
 		getline(keyFile, key);
-
-	checksum = CRC::Calculate(key.c_str(), key.length(), CRC::CRC_32());
-
-	if (key == "PUT_YOUR_KEY_HERE") {
-		printw("Please set your key in ImageDeenKey.txt\n");
+	if (!keyFile.good()) {
+		writeLog("\nKeying will be unavailable due to either intentional disabling or a missing ImageDeenKey.txt");
+		keyed = false;
 	}
+	else
+		checksum = CRC::Calculate(key.c_str(), key.length(), CRC::CRC_32());
+
 
 	if (image.spectrum() < 4) {
 		flag = true;
@@ -356,62 +492,169 @@ int main(int argc, char *argv[]) {
 		dimensions[1] = dimensions[1] / 2;
 	}
 
-	CImgDisplay main_disp(dimensions[0], dimensions[1], "Image", NULL, false, true);
+	CImgDisplay main_disp(dimensions[0], dimensions[1], fileName.substr(0, fileName.rfind('.')).c_str(), NULL, false, true);
 	thread displayImageThread(displayImage, ref(main_disp), image);
 
-	printw(	"Pick mode:\n"
-			" E (Encode)\n"
-			" D (Decode)\n"
-			" N (Legacy Encode)\n"
-			" C (Legacy Decode)\n");
+	mvwprintw(mode_win, 1, 0, "%s\n%s\n%s\n%s\n", modes[0], modes[1], modes[2], modes[3]);
+	wrefresh(mode_win);
+
+	mvwprintw(hotkey_win, 1, 0, "%s\n%s", hotkeys[0], hotkeys[1]);
+	wrefresh(hotkey_win);
+	
+	if (keyed) {
+		wattron(log_border, A_REVERSE | A_BOLD);
+		mvwprintw(log_border, 0, 1, "Key|True ");
+		wattroff(log_border, A_REVERSE | A_BOLD);
+	}
+	else {
+		wattron(log_border, A_REVERSE | A_BOLD);
+		mvwprintw(log_border, 0, 1, "Key|False");
+		wattroff(log_border, A_REVERSE | A_BOLD);
+	}
+	wrefresh(log_border);
+	
+	writeLog("\nReady!");
+
+	if (key == "PUT_YOUR_KEY_HERE") {
+		wattron(log_win, A_BOLD | A_BLINK);
+		writeLog("Please set your key in ImageDeenKey.txt");
+		wattroff(log_win, A_BOLD | A_BLINK);
+	}
 	
 	while (!exit) {
+
+		if (modeSelected == NONE)
+			mvwchgat(hotkey_win, 1, 0, strlen(hotkeys[0]), A_BLINK | A_BOLD, NULL, NULL);
+		else
+			mvwchgat(hotkey_win, 1, 0, strlen(hotkeys[0]), A_NORMAL, NULL, NULL);
+
+		if (modeSelected == NONE || modeSelected == ENCODE_LEGACY || modeSelected == DECODE_LEGACY || !keyFile.good())
+			mvwchgat(hotkey_win, 2, 0, strlen(hotkeys[1]), A_BLINK | A_BOLD, NULL, NULL);
+		else
+			mvwchgat(hotkey_win, 2, 0, strlen(hotkeys[1]), A_NORMAL, NULL, NULL);
+		wrefresh(hotkey_win);
+
 		switch (tolower(getch())) {
 			case 'e':
-				image.channels(0, 3);
-				if (flag) image.get_shared_channel(3).fill(255);
-				if (displayImageThread.joinable())
-					displayImageThread.join();
-				if (keyFile.good()) {
-					printw("Use Key (Y/N):\n");
-					if (tolower(getch()) == 'y') {
-						encodeImage_key(image, main_disp, checksum);
-						exit = true;
-						break;
-					}
+				if (modeSelected != NONE)
+					mvwchgat(mode_win, modeSelected + 1, 0, -1, A_NORMAL, NULL, NULL);
+				if (modeSelected != ENCODE) {
+					mvwchgat(mode_win, ENCODE + 1, 0, strlen(modes[ENCODE]), A_STANDOUT, NULL, NULL);
+					modeSelected = ENCODE;
 				}
-				encodeImage(image, main_disp);
-				exit = true;
+				else {
+					modeSelected = NONE;
+				}
+				wrefresh(mode_win);
 				break;
 			case 'd':
-				image.channels(0, 3);
-				if (displayImageThread.joinable())
-					displayImageThread.join();
-				if (keyFile.good()) {
-					printw("Use Key (Y/N):\n");
-					if (tolower(getch()) == 'y') {
-						decodeImage_key(image, main_disp, checksum);
-						exit = true;
-						break;
-					}
+				if (modeSelected != NONE)
+					mvwchgat(mode_win, modeSelected + 1, 0, -1, A_NORMAL, NULL, NULL);
+				if (modeSelected != DECODE) {
+					mvwchgat(mode_win, DECODE + 1, 0, strlen(modes[DECODE]), A_STANDOUT, NULL, NULL);
+					modeSelected = DECODE;
 				}
-				decodeImage(image, main_disp);
-				exit = true;
+				else {
+					modeSelected = NONE;
+				}
+				wrefresh(mode_win);
 				break;
 			case 'n':
-				endwin();
-				encodeImageLegacy(image);
-				this_thread::sleep_for(std::chrono::seconds(2));
-				return 0;
+				if (modeSelected != NONE)
+					mvwchgat(mode_win, modeSelected + 1, 0, -1, A_NORMAL, NULL, NULL);
+				if (modeSelected != ENCODE_LEGACY) {
+					mvwchgat(mode_win, ENCODE_LEGACY + 1, 0, strlen(modes[ENCODE_LEGACY]), A_STANDOUT, NULL, NULL);
+					modeSelected = ENCODE_LEGACY;
+				}
+				else {
+					modeSelected = NONE;
+				}
+				wrefresh(mode_win);
+				break;
 			case 'c':
-				endwin();
-				decodeImageLegacy(image);
-				this_thread::sleep_for(std::chrono::seconds(2));
-				return 0;
+				if (modeSelected != NONE)
+					mvwchgat(mode_win, modeSelected + 1, 0, -1, A_NORMAL, NULL, NULL);
+				if (modeSelected != DECODE_LEGACY) {
+					mvwchgat(mode_win, DECODE_LEGACY + 1, 0, strlen(modes[DECODE_LEGACY]), A_STANDOUT, NULL, NULL);
+					modeSelected = DECODE_LEGACY;
+				}
+				else {
+					modeSelected = NONE;
+				}
+				wrefresh(mode_win);
+				break;
+			case '\n':
+				if (modeSelected == NONE)
+					break;
+				exit = true;
+				
+				for (int i = 0; i < getmaxy(mode_border); i++) {
+					wmove(mode_border, i, 0);
+					wchgat(mode_border, -1, A_BLINK, NULL, NULL);
+				}
+				setTitle(mode_border, "Mode", true);
+				wrefresh(mode_border);
+
+				for (int i = 0; i < getmaxy(hotkey_border); i++) {
+					wmove(hotkey_border, i, 0);
+					wchgat(hotkey_border, -1, A_BLINK, NULL, NULL);
+				}
+				setTitle(hotkey_border, "Hotkeys", true);
+				wrefresh(hotkey_border);
+
+				switch (modeSelected) {
+					case ENCODE:
+						image.channels(0, 3);
+						if (flag) image.get_shared_channel(3).fill(255);
+						if (displayImageThread.joinable())
+							displayImageThread.join();
+						if (keyed)
+							encodeImage_key(image, main_disp, checksum);
+						else
+							encodeImage(image, main_disp);
+						break;
+					case DECODE:
+						image.channels(0, 3);
+						if (displayImageThread.joinable())
+							displayImageThread.join();
+						if (keyed)
+							decodeImage_key(image, main_disp, checksum);
+						else
+							decodeImage(image, main_disp);
+						break;
+					case ENCODE_LEGACY:
+						endwin();
+						encodeImageLegacy(image);
+						this_thread::sleep_for(std::chrono::seconds(2));
+						return 0;
+					case DECODE_LEGACY:
+						endwin();
+						decodeImageLegacy(image);
+						this_thread::sleep_for(std::chrono::seconds(2));
+						return 0;
+				}
+				break;
+			case 'k':
+				if (modeSelected == NONE || modeSelected == ENCODE_LEGACY || modeSelected == DECODE_LEGACY || !keyFile.good())
+					break;
+				if (keyed) {
+					wattron(log_border, A_REVERSE | A_BOLD);
+					mvwprintw(log_border, 0, 5, "False");
+					wattroff(log_border, A_REVERSE | A_BOLD);
+				}
+				else {
+					wattron(log_border, A_REVERSE | A_BOLD);
+					mvwprintw(log_border, 0, 5, "True ");
+					wattroff(log_border, A_REVERSE | A_BOLD);
+				}
+				wrefresh(log_border);
+				keyed = !keyed;
+				break;
 			default:
-				continue;
+			continue;
 		}
 	}
+	
 	this_thread::sleep_for(std::chrono::seconds(2));
 	endwin();
 	return 0;

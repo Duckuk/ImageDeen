@@ -42,7 +42,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <NMakeOutput>pdcurses.exe</NMakeOutput>
     <NMakePreprocessorDefinitions>NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <NMakeBuildCommandLine>nmake /f "$(PDCURSES_SRCDIR)wincon\Makefile.vc" pdcurses.lib</NMakeBuildCommandLine>
+    <NMakeBuildCommandLine>nmake /f "$(PDCURSES_SRCDIR)wincon\Makefile.vc" WIDE=Y pdcurses.lib</NMakeBuildCommandLine>
     <OutDir>$(SolutionDir)ImageDeen\libraries\</OutDir>
     <IntDir>$(SolutionDir)ImageDeen\libraries\intermediates\</IntDir>
   </PropertyGroup>
