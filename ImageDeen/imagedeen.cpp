@@ -432,9 +432,9 @@ int main(int argc, char *argv[]) {
 	hotkey_win = derwin(hotkey_border, getmaxy(hotkey_border)-1, getmaxx(hotkey_border)-4, 1, 2);
 	scrollok(mode_win, true);
 
-	bool exit = false;
-	bool flag = false;
-	bool keyed = true;
+	bool exit = false,
+		 flag = false,
+		 keyed = true;
 	const char * modes[4] = {
 		"E (Encode)",
 		"D (Decode)",
