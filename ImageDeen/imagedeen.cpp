@@ -374,12 +374,14 @@ int main(int argc, char *argv[]) {
 
 	SetConsoleTitle((LPCSTR)"ImageDeen");
 
-	initscr();	//Initialize curses
+	//Initalize curses & set settings
+	initscr();
 	cbreak();
 	noecho();
 	resize_term(TERM_Y, TERM_X);
 	curs_set(0);
 
+	//Initialize log window w/ loading message
 	log_border = newwin(TERM_Y-0, TERM_X-23, 0, 23);
 	wborder(log_border,
 		L'\u2588' | A_BOLD,	//Left side
@@ -400,6 +402,7 @@ int main(int argc, char *argv[]) {
 
 	writeLog("ImageDeen is now preparing.\nPlease watch warmly until it is ready.\n");
 
+	//Initalize modes window
 	mode_border = newwin(7, 24, 0, 0);
 	wborder( mode_border,
 		L'\u2588' | A_BOLD,	//Left side
@@ -416,6 +419,7 @@ int main(int argc, char *argv[]) {
 	mode_win = derwin(mode_border, getmaxy(mode_border)-1, getmaxx(mode_border)-4, 1, 2);
 	scrollok(mode_win, true);
 	
+	//Initalize hotkeys window
 	hotkey_border = newwin(TERM_Y-7, 24, 7, 0);
 	wborder(hotkey_border,
 		L'\u2588' | A_BOLD,	//Left side
@@ -432,9 +436,13 @@ int main(int argc, char *argv[]) {
 	hotkey_win = derwin(hotkey_border, getmaxy(hotkey_border)-1, getmaxx(hotkey_border)-4, 1, 2);
 	scrollok(mode_win, true);
 
+	//'Important' variable/constant declarations
 	bool exit = false,
-		 flag = false,
-		 keyed = true;
+		flag = false,
+		keyed = true,
+		beginReady = false,
+		keyReady = false;
+
 	const char * modes[4] = {
 		"E (Encode)",
 		"D (Decode)",
@@ -445,10 +453,11 @@ int main(int argc, char *argv[]) {
 		"ENTER (Begin)",
 		"K (Key)"
 	};
+
 	EncodeTypes modeSelected = NONE;
+
 	string fileName = argv[1]; fileName = fileName.substr(fileName.rfind('\\') + 1).c_str();
 	string key;
-	unsigned int checksum;
 
 	wprintw(log_win, "\nAttempting to open \'%s\'...", fileName.c_str());
 	CImg<unsigned char> image(argv[1]);
@@ -456,8 +465,12 @@ int main(int argc, char *argv[]) {
 
 	int dimensions[2] = { image.width(), image.height() };
 
+	unsigned int checksum;
+	
+	//Seed RNG
 	srand(unsigned (time(NULL)));
 
+	//Open key file (also exe for anti-bloat purposes)
 	fstream keyFile("ImageDeenKey.txt", ios::in);
 	ifstream exeFile("ImageDeen.exe");
 
@@ -476,25 +489,31 @@ int main(int argc, char *argv[]) {
 		writeLog("\nKeying will be unavailable due to either intentional disabling or a missing ImageDeenKey.txt");
 		keyed = false;
 	}
-	else
+	else {
 		checksum = CRC::Calculate(key.c_str(), key.length(), CRC::CRC_32());
-
-
+	}
+	
+	//Flag image for alpha channel filling if encode is picked and image isn't RGBA
 	if (image.spectrum() < 4) {
 		flag = true;
 	}
+
+	//Resize image to RGBA if monochrome or similar
 	if (image.spectrum() < 3) {
 		image.resize(image.width(), image.height(), image.depth(), 3);
 	}
 	
+	//Calculate dimensions for preview image
 	while (dimensions[0] > 800 || dimensions[1] > 800) {
 		dimensions[0] = dimensions[0] / 2;
 		dimensions[1] = dimensions[1] / 2;
 	}
 
+	//Initalize preview image display and display image using advanced 'Clausewitz doesn't multithread' technology (multithreading)
 	CImgDisplay main_disp(dimensions[0], dimensions[1], fileName.substr(0, fileName.rfind('.')).c_str(), NULL, false, true);
 	thread displayImageThread(displayImage, ref(main_disp), image);
 
+	//Print mode & hotkey options
 	mvwprintw(mode_win, 1, 0, "%s\n%s\n%s\n%s\n", modes[0], modes[1], modes[2], modes[3]);
 	wrefresh(mode_win);
 
@@ -513,6 +532,7 @@ int main(int argc, char *argv[]) {
 	}
 	wrefresh(log_border);
 	
+	//Print ready message & bark at user to set their key
 	writeLog("\nReady!");
 
 	if (key == "PUT_YOUR_KEY_HERE") {
@@ -523,18 +543,29 @@ int main(int argc, char *argv[]) {
 	
 	while (!exit) {
 
-		if (modeSelected == NONE)
+		if (modeSelected == NONE) {
+			beginReady = false;
 			mvwchgat(hotkey_win, 1, 0, strlen(hotkeys[0]), A_BLINK | A_BOLD, NULL, NULL);
-		else
+		}
+		else {
+			beginReady = true;
 			mvwchgat(hotkey_win, 1, 0, strlen(hotkeys[0]), A_NORMAL, NULL, NULL);
+		}
 
-		if (modeSelected == NONE || modeSelected == ENCODE_LEGACY || modeSelected == DECODE_LEGACY || !keyFile.good())
+		//Check conditions for keying and gr[ae]y out if applicable
+		if (modeSelected == NONE || modeSelected == ENCODE_LEGACY || modeSelected == DECODE_LEGACY || !keyFile.good()) {
+			keyReady = false;
 			mvwchgat(hotkey_win, 2, 0, strlen(hotkeys[1]), A_BLINK | A_BOLD, NULL, NULL);
-		else
+		}
+		else {
+			keyReady = true;
 			mvwchgat(hotkey_win, 2, 0, strlen(hotkeys[1]), A_NORMAL, NULL, NULL);
+		}
 		wrefresh(hotkey_win);
 
 		switch (tolower(getch())) {
+
+			//Switch to and/or toggle encode
 			case 'e':
 				if (modeSelected != NONE)
 					mvwchgat(mode_win, modeSelected + 1, 0, -1, A_NORMAL, NULL, NULL);
@@ -547,6 +578,8 @@ int main(int argc, char *argv[]) {
 				}
 				wrefresh(mode_win);
 				break;
+			
+			//Switch to and/or toggle decode
 			case 'd':
 				if (modeSelected != NONE)
 					mvwchgat(mode_win, modeSelected + 1, 0, -1, A_NORMAL, NULL, NULL);
@@ -559,6 +592,8 @@ int main(int argc, char *argv[]) {
 				}
 				wrefresh(mode_win);
 				break;
+
+			//Switch to and/or toggle legacy encode
 			case 'n':
 				if (modeSelected != NONE)
 					mvwchgat(mode_win, modeSelected + 1, 0, -1, A_NORMAL, NULL, NULL);
@@ -571,6 +606,8 @@ int main(int argc, char *argv[]) {
 				}
 				wrefresh(mode_win);
 				break;
+
+			//Switch to and/or toggle legacy decode
 			case 'c':
 				if (modeSelected != NONE)
 					mvwchgat(mode_win, modeSelected + 1, 0, -1, A_NORMAL, NULL, NULL);
@@ -583,11 +620,15 @@ int main(int argc, char *argv[]) {
 				}
 				wrefresh(mode_win);
 				break;
+
+			//Execute order D33N
 			case '\n':
-				if (modeSelected == NONE)
+				if (!beginReady)
 					break;
+
 				exit = true;
 				
+				//Gr[ae]y out mode & hotkey windows
 				for (int i = 0; i < getmaxy(mode_border); i++) {
 					wmove(mode_border, i, 0);
 					wchgat(mode_border, -1, A_BLINK, NULL, NULL);
@@ -632,10 +673,12 @@ int main(int argc, char *argv[]) {
 						decodeImageLegacy(image);
 						this_thread::sleep_for(std::chrono::seconds(2));
 						return 0;
+					default:
+						continue;
 				}
 				break;
 			case 'k':
-				if (modeSelected == NONE || modeSelected == ENCODE_LEGACY || modeSelected == DECODE_LEGACY || !keyFile.good())
+				if (!keyReady)
 					break;
 				if (keyed) {
 					wattron(log_border, A_REVERSE | A_BOLD);
