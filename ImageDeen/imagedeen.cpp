@@ -489,6 +489,9 @@ int main(int argc, char *argv[]) {
 		writeLog("\nKeying will be unavailable due to either intentional disabling or a missing ImageDeenKey.txt");
 		keyed = false;
 	}
+	else if (key == "PUT_YOUR_KEY_HERE") {
+		keyed = false;
+	}
 	else {
 		checksum = CRC::Calculate(key.c_str(), key.length(), CRC::CRC_32());
 	}
