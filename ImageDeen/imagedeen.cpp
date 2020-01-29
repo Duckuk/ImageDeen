@@ -556,7 +556,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		//Check conditions for keying and gr[ae]y out if applicable
-		if (modeSelected == NONE || modeSelected == ENCODE_LEGACY || modeSelected == DECODE_LEGACY || !keyFile.good()) {
+		if (modeSelected == NONE || modeSelected == ENCODE_LEGACY || modeSelected == DECODE_LEGACY || !keyFile.good() || !keyed) {
 			keyReady = false;
 			mvwchgat(hotkey_win, 2, 0, strlen(hotkeys[1]), A_BLINK | A_BOLD, NULL, NULL);
 		}
