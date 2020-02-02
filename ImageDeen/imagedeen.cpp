@@ -13,11 +13,12 @@ using namespace cimg_library;
 
 
 int TERM_X = 96;
-int TERM_Y = 16;
+int TERM_Y = 20;
 
-WINDOW *mode_border, *mode_win;
 WINDOW *log_border, *log_win;
+WINDOW *mode_border, *mode_win;
 WINDOW *hotkey_border, *hotkey_win;
+WINDOW *info_border, *info_win;
 
 enum EncodeTypes {
 	NONE = -1,
@@ -382,12 +383,12 @@ int main(int argc, char *argv[]) {
 	curs_set(0);
 
 	//Initialize log window w/ loading message
-	log_border = newwin(TERM_Y-0, TERM_X-23, 0, 23);
+	log_border = newwin(16, TERM_X-23, 0, 23);
 	wborder(log_border,
 		L'\u2588' | A_BOLD,	//Left side
 		L'\u2588' | A_BOLD,	//Right side
 		L'\u2580' | A_BOLD,	//Top side
-		L'\u2584' | A_BOLD,	//Bottom side
+		' ' | A_BOLD,	//Bottom side
 		L'\u2588' | A_BOLD,	//Top left corner
 		L'\u2588' | A_BOLD,	//Top right corner
 		L'\u2588' | A_BOLD,	//Bottom left corner
@@ -420,8 +421,25 @@ int main(int argc, char *argv[]) {
 	scrollok(mode_win, true);
 	
 	//Initalize hotkeys window
-	hotkey_border = newwin(TERM_Y-7, 24, 7, 0);
+	hotkey_border = newwin(9, 24, getmaxy(mode_border), 0);
 	wborder(hotkey_border,
+		L'\u2588' | A_BOLD,	//Left side
+		L'\u2588' | A_BOLD,	//Right side
+		L'\u2580' | A_BOLD,	//Top side
+		' ' | A_BOLD,	//Bottom side
+		L'\u2588' | A_BOLD,	//Top left corner
+		L'\u2588' | A_BOLD,	//Top right corner
+		L'\u2588' | A_BOLD,	//Bottom left corner
+		L'\u2588' | A_BOLD	//Bottom right corner
+	);
+	setTitle(hotkey_border, "Hotkeys");
+	wrefresh(hotkey_border);
+	hotkey_win = derwin(hotkey_border, getmaxy(hotkey_border)-1, getmaxx(hotkey_border)-4, 1, 2);
+	scrollok(hotkey_win, true);
+
+	//Initialize info window
+	info_border = newwin(4, TERM_X, 16, 0);
+	wborder(info_border,
 		L'\u2588' | A_BOLD,	//Left side
 		L'\u2588' | A_BOLD,	//Right side
 		L'\u2580' | A_BOLD,	//Top side
@@ -431,10 +449,10 @@ int main(int argc, char *argv[]) {
 		L'\u2588' | A_BOLD,	//Bottom left corner
 		L'\u2588' | A_BOLD	//Bottom right corner
 	);
-	setTitle(hotkey_border, "Hotkeys");
-	wrefresh(hotkey_border);
-	hotkey_win = derwin(hotkey_border, getmaxy(hotkey_border)-1, getmaxx(hotkey_border)-4, 1, 2);
-	scrollok(mode_win, true);
+	setTitle(info_border, "Info");
+	wrefresh(info_border);
+	info_win = derwin(info_border, getmaxy(info_border)-1, getmaxx(info_border)-4, 1, 2);
+	wrefresh(info_win);
 
 	//'Important' variable/constant declarations
 	bool exit = false,
@@ -495,15 +513,28 @@ int main(int argc, char *argv[]) {
 	else {
 		checksum = CRC::Calculate(key.c_str(), key.length(), CRC::CRC_32());
 	}
+
+	//Print info
+	wprintw(info_win, "\tWidth:\t%d\t\tChannels:\t%d\t\tColour Space:\t%s\n"
+					  "\tHeight:\t%d\t\tDepth:\t\t%d\t\tRAM Size:\t%dkb", 
+		dimensions[0], image.spectrum(), (image.spectrum()==1) ? "MONO" : (image.spectrum()==2) ? "BW&A" : (image.spectrum()==3) ? "RGB" : (image.spectrum()==4) ? "RGBA" : "Unknown", 
+		dimensions[1], image.depth(), image.size()*sizeof(unsigned char)/1024);
+	wrefresh(info_win);
 	
+
+	//Resize image to RGBA if monochrome
+	if (image.spectrum() == 1) {
+		image.resize(image.width(), image.height(), image.depth(), 4);
+	}
+	else if (image.spectrum() == 2) {
+		image.resize(image.width(), image.height(), image.depth(), 4);
+		image.get_shared_channel(1) = image.get_channel(0);
+		image.get_shared_channel(2) = image.get_channel(0);
+	}
+
 	//Flag image for alpha channel filling if encode is picked and image isn't RGBA
 	if (image.spectrum() < 4) {
 		flag = true;
-	}
-
-	//Resize image to RGBA if monochrome or similar
-	if (image.spectrum() < 3) {
-		image.resize(image.width(), image.height(), image.depth(), 3);
 	}
 	
 	//Calculate dimensions for preview image
