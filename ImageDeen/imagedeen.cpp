@@ -524,7 +524,7 @@ int main(int argc, char *argv[]) {
 
 	//Resize image to RGBA if monochrome
 	if (image.spectrum() == 1) {
-		image.resize(image.width(), image.height(), image.depth(), 4);
+		image.resize(image.width(), image.height(), image.depth(), 3);
 	}
 	else if (image.spectrum() == 2) {
 		image.resize(image.width(), image.height(), image.depth(), 4);
