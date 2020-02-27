@@ -12,8 +12,8 @@
 using namespace cimg_library;
 
 
-int TERM_X = 96;
-int TERM_Y = 20;
+const int TERM_X = 96;
+const int TERM_Y = 20;
 
 WINDOW *log_border, *log_win;
 WINDOW *mode_border, *mode_win;
